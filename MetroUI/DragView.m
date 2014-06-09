@@ -25,7 +25,7 @@
         }
     	
     	for (int i = 0; i < columnCount; i++) {
-            UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0, (statusBar + navigationBar)+(i*itemHeight), frame.size.width, 1)];
+            UIView *lineView = [[UIView alloc] initWithFrame:CGRectMake(0, (topBarHeight)+(i*itemHeight), frame.size.width, 1)];
             lineView.backgroundColor = [UIColor whiteColor];
             [self addSubview:lineView];
         }

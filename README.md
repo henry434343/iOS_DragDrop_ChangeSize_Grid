@@ -2,6 +2,7 @@ iOS_Windows_Metro_UI
 ========================
 
 v 1.1.2 - Add PageViewController
+v 1.1.3 - Add Plist to record screen view
 
 This is Windows Metro UI on iOS.  
 You can click item to switch item color and long click item to edit mode  

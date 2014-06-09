@@ -12,9 +12,12 @@
 
 @interface ViewController : UIViewController
 
+@property(nonatomic, strong)NSString *indentify;
 @property(nonatomic, assign)id<ViewControllerDegelate> delegate;
 
-- (void)addView;
+- (id)initWithid:(NSString*)id;
+- (void)recordItems;
+- (void)addView:(NSString*)id size:(int)size row:(int)row column:(int)column;
 @end
 
 @protocol ViewControllerDegelate

@@ -7,9 +7,10 @@
 //
 
 #import "PageViewController.h"
+#import "Setting.h"
 @interface PageViewController () {
     NSMutableArray *viewControllers;
-    NSMutableArray *firstViewControll;
+    UIPageControl *pageControl;
 }
 
 @end
@@ -30,9 +31,9 @@
     [super viewDidLoad];
     
     viewControllers  = [NSMutableArray array];
-    firstViewControll = [NSMutableArray array];
+    NSMutableArray *firstViewControll = [NSMutableArray array];
     for (int i = 0; i < 5; i++) {
-        ViewController *controller = [[ViewController alloc] init];
+        ViewController *controller = [[ViewController alloc] initWithid:[NSString stringWithFormat:@"%d",i]];
         controller.delegate = self;
         [viewControllers addObject:controller];
         
@@ -48,15 +49,33 @@
     [self addChildViewController:self.pageController];
     [self.view addSubview:self.pageController.view];
     [self.pageController didMoveToParentViewController:self];
-
     
+    
+    pageControl = [[UIPageControl alloc] init];
+    CGRect frame = IS_IOS7 ? CGRectMake(110, self.view.bounds.size.height - 40, 100, 20) : CGRectMake(110, self.view.bounds.size.height - 84, 100, 20);
+    pageControl.frame = frame;
+    pageControl.backgroundColor = [UIColor clearColor];
+    pageControl.numberOfPages = 5;
+    pageControl.currentPage = 0;
+    pageControl.pageIndicatorTintColor = [UIColor grayColor];
+    pageControl.currentPageIndicatorTintColor = [UIColor blackColor];
+    [self.view addSubview:pageControl];
+
     UIBarButtonItem *rightButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addView)];
     self.navigationItem.rightBarButtonItem = rightButton;
+    
+    UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithTitle:@"Record Screen" style:UIBarButtonItemStyleBordered target:self action:@selector(recordItem)];
+    self.navigationItem.leftBarButtonItem = leftButton;
+}
+
+- (void)recordItem {
+    [((ViewController*)[self.pageController.viewControllers objectAtIndex:0]) recordItems];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Record Success" message:nil delegate:nil cancelButtonTitle:@"Ok" otherButtonTitles:nil, nil];
+    [alert show];
 }
 
 - (void)addView {
-    
-    [((ViewController*)[self.pageController.viewControllers objectAtIndex:0]) addView];    
+    [((ViewController*)[self.pageController.viewControllers objectAtIndex:0]) addView:nil size:0 row:-1 column:-1];
 }
 
 - (void)editMode:(BOOL)isEdit {
@@ -82,7 +101,7 @@
 - (UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerBeforeViewController:(UIViewController *)viewController {
     
     NSUInteger index = [viewControllers indexOfObject:viewController];
-    
+    [pageControl setCurrentPage:index];
     if (index == 0) {
         return nil;
     }
@@ -95,8 +114,8 @@
 
 - (UIViewController *)pageViewController:(UIPageViewController *)pageViewController viewControllerAfterViewController:(UIViewController *)viewController {
     
-   NSUInteger index = [viewControllers indexOfObject:viewController];
-    
+    NSUInteger index = [viewControllers indexOfObject:viewController];
+    [pageControl setCurrentPage:index];
     index++;
     
     if (index == 5) {
@@ -105,11 +124,6 @@
     
     return [viewControllers objectAtIndex:index];
     
-}
-
-- (NSInteger)presentationCountForPageViewController:(UIPageViewController *)pageViewController {
-    // The number of items reflected in the page indicator.
-    return [viewControllers count];
 }
 
 - (NSInteger)presentationIndexForPageViewController:(UIPageViewController *)pageViewController {

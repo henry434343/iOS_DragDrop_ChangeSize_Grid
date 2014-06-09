@@ -8,8 +8,13 @@
 
 #import <Foundation/Foundation.h>
 
+#define IS_IOS7 [[UIDevice currentDevice].systemVersion hasPrefix:@"7"]
+
 #define statusBar 20
 #define navigationBar 44
+
+#define topBarHeight IS_IOS7 ? statusBar + navigationBar : 0
+
 #define rowCount 4
 #define columnCount 6
 

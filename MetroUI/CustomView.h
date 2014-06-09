@@ -13,6 +13,7 @@
 
 @interface CustomView : UIView
 
+@property(nonatomic, strong)NSString *id;
 @property(nonatomic, strong)UILabel *label;
 @property(nonatomic, strong)UIButton *delete;
 @property(nonatomic, strong)UIButton *resize;

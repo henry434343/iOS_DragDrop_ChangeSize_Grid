@@ -29,6 +29,8 @@
 		D9744B3A1941885700AAE667 /* PointItem.m in Sources */ = {isa = PBXBuildFile; fileRef = D9744B391941885700AAE667 /* PointItem.m */; };
 		D9744B3E19418CF500AAE667 /* Setting.m in Sources */ = {isa = PBXBuildFile; fileRef = D9744B3D19418CF500AAE667 /* Setting.m */; };
 		D9744B411941BA9100AAE667 /* DragView.m in Sources */ = {isa = PBXBuildFile; fileRef = D9744B401941BA9100AAE667 /* DragView.m */; };
+		D9F551E71945468200C2786F /* DB.m in Sources */ = {isa = PBXBuildFile; fileRef = D9F551E61945468200C2786F /* DB.m */; };
+		D9F551EE19454C7D00C2786F /* Recorditem.m in Sources */ = {isa = PBXBuildFile; fileRef = D9F551ED19454C7D00C2786F /* Recorditem.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -74,6 +76,10 @@
 		D9744B3D19418CF500AAE667 /* Setting.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Setting.m; sourceTree = "<group>"; };
 		D9744B3F1941BA9100AAE667 /* DragView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DragView.h; sourceTree = "<group>"; };
 		D9744B401941BA9100AAE667 /* DragView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DragView.m; sourceTree = "<group>"; };
+		D9F551E51945468200C2786F /* DB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DB.h; sourceTree = "<group>"; };
+		D9F551E61945468200C2786F /* DB.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DB.m; sourceTree = "<group>"; };
+		D9F551EC19454C7D00C2786F /* Recorditem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Recorditem.h; sourceTree = "<group>"; };
+		D9F551ED19454C7D00C2786F /* Recorditem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Recorditem.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -143,14 +149,18 @@
 				D9744B331941830200AAE667 /* CustomView.m */,
 				D9744B381941885700AAE667 /* PointItem.h */,
 				D9744B391941885700AAE667 /* PointItem.m */,
-				D9744B0E19417B6100AAE667 /* Images.xcassets */,
-				D9744AFA19417B6000AAE667 /* Supporting Files */,
 				D9744B3C19418CF500AAE667 /* Setting.h */,
 				D9744B3D19418CF500AAE667 /* Setting.m */,
 				D9744B3F1941BA9100AAE667 /* DragView.h */,
 				D9744B401941BA9100AAE667 /* DragView.m */,
 				2CB765541943FED300B27627 /* PageViewController.h */,
 				2CB765551943FED300B27627 /* PageViewController.m */,
+				D9F551E51945468200C2786F /* DB.h */,
+				D9F551E61945468200C2786F /* DB.m */,
+				D9F551EC19454C7D00C2786F /* Recorditem.h */,
+				D9F551ED19454C7D00C2786F /* Recorditem.m */,
+				D9744B0E19417B6100AAE667 /* Images.xcassets */,
+				D9744AFA19417B6000AAE667 /* Supporting Files */,
 			);
 			path = MetroUI;
 			sourceTree = "<group>";
@@ -289,8 +299,10 @@
 				D9744B341941830200AAE667 /* CustomView.m in Sources */,
 				D9744B0D19417B6100AAE667 /* ViewController.m in Sources */,
 				D9744B3E19418CF500AAE667 /* Setting.m in Sources */,
+				D9F551EE19454C7D00C2786F /* Recorditem.m in Sources */,
 				2CB765561943FED300B27627 /* PageViewController.m in Sources */,
 				D9744B411941BA9100AAE667 /* DragView.m in Sources */,
+				D9F551E71945468200C2786F /* DB.m in Sources */,
 				D9744B0419417B6000AAE667 /* AppDelegate.m in Sources */,
 				D9744B3A1941885700AAE667 /* PointItem.m in Sources */,
 				D9744B0019417B6000AAE667 /* main.m in Sources */,
@@ -431,7 +443,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MetroUI/MetroUI-Prefix.pch";
 				INFOPLIST_FILE = "MetroUI/MetroUI-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -444,7 +458,9 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MetroUI/MetroUI-Prefix.pch";
 				INFOPLIST_FILE = "MetroUI/MetroUI-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 6.1;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;

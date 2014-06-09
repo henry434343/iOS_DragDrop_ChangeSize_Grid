@@ -10,7 +10,8 @@
 #import "CustomView.h"
 #import "PointItem.h"
 #import "DragView.h"
-
+#import "DB.h"
+#import "Recorditem.h"
 @interface ViewController ()<CustomViewDelegate> {
     CGPoint startLocation;
     
@@ -35,32 +36,46 @@
     
     NSMutableArray *views;
     NSMutableArray *screenPointUse;
+    
+    DB *db;
 }
 
 @end
 
 @implementation ViewController
-@synthesize delegate;
+@synthesize delegate,indentify;
+
+- (id)initWithid:(NSString *)id {
+    self = [super init];
+    if (self) {
+        self.indentify = id;
+    }
+    return self;
+}
 - (void)viewDidLoad
 {
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
     self.view.backgroundColor = [UIColor whiteColor];
-    
-//    UIBarButtonItem *rightButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(addView)];
-//    self.navigationItem.rightBarButtonItem = rightButton;
-    
     screenWidth = self.view.frame.size.width;
     screeHeight = self.view.frame.size.height;
     itemWidth = screenWidth/rowCount;
-    itemHeight = (screeHeight - statusBar - navigationBar)/columnCount;
+    itemHeight = IS_IOS7? (screeHeight - (topBarHeight))/columnCount : (screeHeight - 44)/columnCount;
     
     [self initPoints];
     views = [NSMutableArray array];
-    
     dragView = [[DragView alloc] initWithFrame:self.view.bounds itemWidth:itemWidth itemHeight:itemHeight];
     [dragView setAlpha:0];
     [self.view addSubview:dragView];
+    
+    db = [[DB alloc] initWithDBName:self.indentify];
+    NSArray *array = [db getItem];
+    if (array != nil) {
+        for (NSData *data in array) {
+            Recorditem *item = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+            [self addView:item.id size:[item.size intValue] row:[item.row intValue] column:[item.column intValue]];
+        }
+    }
 }
 
 - (void)initPoints {
@@ -76,27 +91,75 @@
     }
 }
 
-- (void)addView {
+- (void)recordItems{
+    for (CustomView *item in views) {
+        [db insertItem:item.id size:item.size row:((PointItem*)[item.positions objectAtIndex:0]).X column:((PointItem*)[item.positions objectAtIndex:0]).Y];
+    }
+}
+
+- (void)addView:(NSString*)id size:(int)size row:(int)row column:(int)column {
     
     if (views.count >= rowCount * columnCount) {
         NSLog(@"已達上限");
         return;
     }
-    NSArray *array = [self getNewViewPosition:min];
-    int x = [[array objectAtIndex:0] intValue];
-    int y = [[array objectAtIndex:1] intValue];
     
-    CustomView *view = [[CustomView alloc] initWithFrame:CGRectMake(x*itemWidth, (statusBar+navigationBar)+y*itemHeight, itemWidth, itemHeight)];
-    [self.view addSubview:view];
+    int x;
+    int y;
+    if (row == -1 && column == -1) {
+        NSArray *array = [self getNewViewPosition:min];
+        x = [[array objectAtIndex:0] intValue];
+        y = [[array objectAtIndex:1] intValue];
+    }
+    else {
+        x = row;
+        y = column;
+    }
+    
+    int width = 0;
+    int height = 0;
+    
+    CustomView *view = [[CustomView alloc] init];
+    switch (size) {
+        case 0:
+            width = itemWidth;
+            height = itemHeight;
+            view.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:x andY:y], nil];
+            break;
+        case 1:
+            width = itemWidth *2;
+            height = itemHeight;
+            view.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:x andY:y],
+                                                              [[PointItem alloc] initWithPoint:x+1 andY:y], nil];
+
+            break;
+        case 2:
+            width = itemWidth;
+            height = itemHeight *2;
+            view.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:x andY:y],
+                                                              [[PointItem alloc] initWithPoint:x andY:y+1], nil];
+            break;
+        case 3:
+            width = itemWidth *2;
+            height = itemHeight *2;
+            view.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:x andY:y],
+                                                              [[PointItem alloc] initWithPoint:x andY:y+1],
+                                                              [[PointItem alloc] initWithPoint:x+1 andY:y],
+                                                              [[PointItem alloc] initWithPoint:x+1 andY:y+1], nil];
+            break;
+    }
+    
+    view.frame =CGRectMake(x*itemWidth, (topBarHeight)+y*itemHeight, width, height);
 
     view.delegate = self;
     view.userInteractionEnabled = YES;
-    view.label.text = [NSString stringWithFormat:@"%d", (int)views.count];
-    view.size = min;
-    view.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:x andY:y], nil];
+    view.id = id == nil ? [NSString stringWithFormat:@"%d",(int)views.count] : id;
+    view.label.text = view.id;
+    view.size = size;
     view.tag = views.count;
     
     [views addObject:view];
+    [self.view addSubview:view];
     [self updateScreenPosition];
 }
 
@@ -199,7 +262,7 @@
             
             for (int i = 0; i < nowItem.positions.count; i++) {
                 if (((PointItem*)[nowItem.positions objectAtIndex:i]).X == (int)touchLocation.x/itemWidth &&
-                    ((PointItem*)[nowItem.positions objectAtIndex:i]).Y == (int)(touchLocation.y - statusBar - navigationBar)/itemHeight) {
+                    ((PointItem*)[nowItem.positions objectAtIndex:i]).Y == (int)(touchLocation.y - (topBarHeight))/itemHeight) {
                     clickItemPointIndex = i ;
                     break;
                 }
@@ -216,7 +279,7 @@
             CustomView *nowItem = (CustomView*)[touch view];
             int X = (int)[touch locationInView:self.view].x;
             int Y = (int)[touch locationInView:self.view].y;
-            if (X/itemWidth > rowCount-1 || (Y- statusBar - navigationBar)/itemHeight > columnCount-1)
+            if (X/itemWidth > rowCount-1 || (Y- (topBarHeight))/itemHeight > columnCount-1)
                 return;
             
             CGPoint pt =[[touches anyObject] locationInView:nowItem];
@@ -229,7 +292,7 @@
             
             
             int rootX = X/itemWidth;
-            int rootY = (Y- statusBar - navigationBar)/itemHeight;
+            int rootY = (Y- (topBarHeight))/itemHeight;
             int index = clickItemPointIndex >= nowItem.positions.count ? 0 : clickItemPointIndex;
             if (((PointItem*)[nowItem.positions objectAtIndex:index]).X != rootX || ((PointItem*)[nowItem.positions objectAtIndex:index]).Y != rootY) {
                 //設定起始位置
@@ -291,7 +354,7 @@
             [nowItem setAlpha:1];
             int X = (int)[touch locationInView:self.view].x;
             int Y = (int)[touch locationInView:self.view].y;
-            if (X/itemWidth > rowCount-1 || (Y- statusBar - navigationBar)/itemHeight > columnCount-1)
+            if (X/itemWidth > rowCount-1 || (Y- (topBarHeight))/itemHeight > columnCount-1)
                 return;
             
             int rootX = 0;
@@ -306,7 +369,45 @@
                 rootY = ((PointItem*)[nowItem.positions objectAtIndex:0]).Y;
             }
             
-            nowItem.frame = CGRectMake(0+(itemWidth*rootX), (statusBar+navigationBar)+(itemHeight*rootY), nowItem.frame.size.width, nowItem.frame.size.height);
+            BOOL isReset = false;
+            if (nowItem.size == mid_width) {
+                if (rootX < 0) {
+                    rootX = 0;
+                    [self resetItem:nowItem rootX:rootX rootY:rootY];
+                    isReset = true;
+                }
+                else if (rootX+1 >= rowCount) {
+                    [self resetItem:nowItem rootX:rootX rootY:rootY];
+                    isReset = true;
+                }
+            }
+            else if (nowItem.size == mid_height) {
+                if (rootY < 0) {
+                    rootY = 0;
+                    [self resetItem:nowItem rootX:rootX rootY:rootY];
+                    isReset = true;
+                }
+                else if (rootY+1 >= columnCount) {
+                    [self resetItem:nowItem rootX:rootX rootY:rootY];
+                    isReset = true;
+                }
+            }
+            else if (nowItem.size == max) {
+                if (rootX < 0 || rootY < 0) {
+                    rootX = rootX < 0 ? 0 : rootX;
+                    rootY = rootY < 0 ? 0 : rootY;
+                    [self resetItem:nowItem rootX:rootX rootY:rootY];
+                    isReset = true;
+                }
+                else if (rootX+1 >= rowCount || rootY+1 >= columnCount) {
+                    [self resetItem:nowItem rootX:rootX rootY:rootY];
+                    isReset = true;
+                }
+            }
+            
+            if (!isReset)
+                nowItem.frame = CGRectMake(0+(itemWidth*rootX), (topBarHeight)+(itemHeight*rootY), nowItem.frame.size.width, nowItem.frame.size.height);
+
             [self setItemPosition:nowItem position:[NSArray arrayWithObjects:[NSNumber numberWithInteger:rootX],[NSNumber numberWithInteger:rootY], nil]];
             [self checkOverlap:nowItem];
         }
@@ -317,6 +418,11 @@
     else {
         [self finishEditMode:nil];
     }
+}
+
+- (void)resetItem:(CustomView*)item rootX:(int)rootX rootY:(int)rootY {
+    item.size = min;
+    item.frame = CGRectMake(0+(itemWidth*rootX), (topBarHeight)+(itemHeight*rootY), itemWidth, itemHeight);
 }
 
 - (void)pressCustomView:(CustomView*)view {
@@ -330,8 +436,12 @@
         clickItemPointIndex = -1;
         itemActionMode = editMode;
         [dragView setAlpha:0.5];
+        [self showEditMode:view];
     }
-    [self showEditMode:view];
+    
+    for (CustomView *item in views) {
+        [item setAlpha:1];
+    }
 }
 
 - (void)showEditMode:(CustomView*)view {
@@ -357,6 +467,7 @@
 
 - (void)deleteCustomView:(CustomView *)view {
     NSLog(@"deleteCustomView : %d",(int)view.tag);
+    [db removeItem:view.id];
     [view removeFromSuperview];
     [views removeObject:view];
     [self updateScreenPosition];
@@ -388,7 +499,7 @@
             item.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:startX andY:startY],
                                                               [[PointItem alloc] initWithPoint:startX+1 andY:startY],nil];
 		    item.size = mid_width;
-            [item setFrame:CGRectMake(0+(itemWidth*startX), (statusBar+navigationBar)+(itemHeight*startY), itemWidth*2, itemHeight)];
+            [item setFrame:CGRectMake(0+(itemWidth*startX), (topBarHeight)+(itemHeight*startY), itemWidth*2, itemHeight)];
 
             break;
             
@@ -403,7 +514,7 @@
             item.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:startX andY:startY],
                                                               [[PointItem alloc] initWithPoint:startX andY:startY+1],nil];
 		    item.size = mid_height;
-            [item setFrame:CGRectMake(0+(itemWidth*startX), (statusBar+navigationBar)+(itemHeight*startY), itemWidth, itemHeight*2)];
+            [item setFrame:CGRectMake(0+(itemWidth*startX), (topBarHeight)+(itemHeight*startY), itemWidth, itemHeight*2)];
 
             break;
             
@@ -420,13 +531,13 @@
                                                               [[PointItem alloc] initWithPoint:startX andY:startY+1],
                                                               [[PointItem alloc] initWithPoint:startX+1 andY:startY+1],nil];
 		    item.size = max;
-            [item setFrame:CGRectMake(0+(itemWidth*startX), (statusBar+navigationBar)+(itemHeight*startY), itemWidth*2, itemHeight*2)];
+            [item setFrame:CGRectMake(0+(itemWidth*startX), (topBarHeight)+(itemHeight*startY), itemWidth*2, itemHeight*2)];
             break;
             
         case max:
             item.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:startX andY:startY],nil];
 		    item.size = min;
-            [item setFrame:CGRectMake(0+(itemWidth*startX), (statusBar+navigationBar)+(itemHeight*startY), itemWidth, itemHeight)];
+            [item setFrame:CGRectMake(0+(itemWidth*startX), (topBarHeight)+(itemHeight*startY), itemWidth, itemHeight)];
             break;
             
         default:
@@ -494,7 +605,7 @@
                         if (start != nil) {
                             isNoSpaceToMove = false;
                             [UIView animateWithDuration:0.3 delay:0.0 options:UIViewAnimationOptionCurveLinear animations:^{
-                                otherItem.frame = CGRectMake(0+(itemWidth*[[start objectAtIndex:0] intValue]), (statusBar+navigationBar)+(itemHeight*[[start objectAtIndex:1] intValue]), otherItem.frame.size.width, otherItem.frame.size.height);
+                                otherItem.frame = CGRectMake(0+(itemWidth*[[start objectAtIndex:0] intValue]), (topBarHeight)+(itemHeight*[[start objectAtIndex:1] intValue]), otherItem.frame.size.width, otherItem.frame.size.height);
                             } completion:^(BOOL finished){
                                 
                             }];

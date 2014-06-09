@@ -9,14 +9,15 @@
 #import "AppDelegate.h"
 #import "ViewController.h"
 #import "PageViewController.h"
+#import "Setting.h"
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
     // Override point for customization after application launch.
-    
-    PageViewController *vc = [[PageViewController alloc] init];
-    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:vc];
+
+    PageViewController *pageVC = [[PageViewController alloc] init];
+    UINavigationController *nav = [[UINavigationController alloc] initWithRootViewController:pageVC];
     self.window.rootViewController = nav;
     return YES;
 }

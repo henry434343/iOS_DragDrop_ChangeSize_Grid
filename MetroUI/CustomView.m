@@ -10,7 +10,7 @@
 #import "PointItem.h"
 
 @implementation CustomView
-@synthesize label,delete,resize,positions;
+@synthesize id,label,delete,resize,positions;
 @synthesize delegate;
 @synthesize edgeInsets;
 
