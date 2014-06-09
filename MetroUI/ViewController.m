@@ -60,7 +60,7 @@
     screenWidth = self.view.frame.size.width;
     screeHeight = self.view.frame.size.height;
     itemWidth = screenWidth/rowCount;
-    itemHeight = IS_IOS7? (screeHeight - (topBarHeight))/columnCount : (screeHeight - 44)/columnCount;
+    itemHeight =  (screeHeight - (IS_IOS7 ? 64 : 44))/columnCount;
     
     [self initPoints];
     views = [NSMutableArray array];

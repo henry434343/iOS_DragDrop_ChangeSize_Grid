@@ -30,6 +30,9 @@
 {
     [super viewDidLoad];
     
+    if (IS_IOS7) {
+        self.edgesForExtendedLayout = UIRectEdgeNone;
+    }
     viewControllers  = [NSMutableArray array];
     NSMutableArray *firstViewControll = [NSMutableArray array];
     for (int i = 0; i < 5; i++) {
@@ -52,7 +55,7 @@
     
     
     pageControl = [[UIPageControl alloc] init];
-    CGRect frame = IS_IOS7 ? CGRectMake(110, self.view.bounds.size.height - 40, 100, 20) : CGRectMake(110, self.view.bounds.size.height - 84, 100, 20);
+    CGRect frame = CGRectMake(110, self.view.bounds.size.height - (IS_IOS7 ? 84 : 64), 100, 20);
     pageControl.frame = frame;
     pageControl.backgroundColor = [UIColor clearColor];
     pageControl.numberOfPages = 5;
@@ -66,6 +69,7 @@
     
     UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithTitle:@"Record Screen" style:UIBarButtonItemStyleBordered target:self action:@selector(recordItem)];
     self.navigationItem.leftBarButtonItem = leftButton;
+    
 }
 
 - (void)recordItem {
