@@ -69,7 +69,6 @@
     
     UIBarButtonItem *leftButton = [[UIBarButtonItem alloc] initWithTitle:@"Record Screen" style:UIBarButtonItemStyleBordered target:self action:@selector(recordItem)];
     self.navigationItem.leftBarButtonItem = leftButton;
-    
 }
 
 - (void)recordItem {

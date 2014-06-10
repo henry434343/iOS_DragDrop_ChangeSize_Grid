@@ -8,6 +8,7 @@
 
 #import "DB.h"
 #import "Recorditem.h"
+#import "Setting.h"
 @implementation DB
 @synthesize dbName;
 - (id)initWithDBName:(NSString *)dbname {
@@ -20,6 +21,48 @@
 
 - (NSArray*)getItem {
     return [[NSUserDefaults standardUserDefaults] arrayForKey:self.dbName];
+}
+
+- (NSArray*)getPointRecordFromDB {
+    NSUserDefaults *userPrefs = [NSUserDefaults standardUserDefaults];
+    NSArray *array = (NSMutableArray*)[userPrefs arrayForKey:self.dbName];
+    
+    for (int i = 0; i < columnCount; i++) {
+        for (int j = 0; j < rowCount ; j++) {
+            BOOL isSpace = true;
+            for (NSData *data in array) {
+                Recorditem *item = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+                switch ([item.size intValue]) {
+                    case 0:
+                        if ([item.row intValue] == j && [item.column intValue] == i) {
+                            isSpace = false;
+                        }
+                        break;
+                    case 1:
+                        if (([item.row intValue] == j && [item.column intValue] == i) || ([item.row intValue]+1 == j && [item.column intValue] == i)) {
+                            isSpace = false;
+                        }
+                    case 2:
+                        if (([item.row intValue] == j && [item.column intValue] == i) || ([item.row intValue] == j && [item.column intValue]+1 == i)) {
+                            isSpace = false;
+                        }
+                    case 3:
+                        if (([item.row intValue] == j && [item.column intValue] == i) || ([item.row intValue]+1 == j && [item.column intValue] == i) ||
+                            ([item.row intValue] == j && [item.column intValue]+1 == i) || ([item.row intValue]+1 == j && [item.column intValue]+1 == i)) {
+                            isSpace = false;
+                        }
+                    default:
+                        break;
+                }
+            }
+            
+            if (isSpace) {
+                NSLog(@"(%d,%d) is Space can add View",j,i);
+                return [NSArray arrayWithObjects:[NSNumber numberWithInt:j],[NSNumber numberWithInt:i], nil];
+            }
+        }
+    }
+    return nil;
 }
 
 - (void)insertItem:(NSString *)id size:(int)size row:(int)row column:(int)column {

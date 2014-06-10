@@ -14,6 +14,7 @@
 - (id)initWithDBName:(NSString*)dbName;
 
 - (NSArray*)getItem;
+- (NSArray*)getPointRecordFromDB;
 - (void)removeItem:(NSString*)id;
 - (void)insertItem:(NSString*)id size:(int)size row:(int)row column:(int)column;
 @end

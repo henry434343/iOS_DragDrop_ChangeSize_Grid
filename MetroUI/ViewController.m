@@ -95,6 +95,13 @@
     for (CustomView *item in views) {
         [db insertItem:item.id size:item.size row:((PointItem*)[item.positions objectAtIndex:0]).X column:((PointItem*)[item.positions objectAtIndex:0]).Y];
     }
+    
+//    NSArray *array = [db getPointRecordFromDB];
+//    if (array) {
+//        NSLog(@"array");
+//    }
+//    else
+//        NSLog(@"!array");
 }
 
 - (void)addView:(NSString*)id size:(int)size row:(int)row column:(int)column {
@@ -199,6 +206,7 @@
                     }
                 }
                 @catch (NSException *exception) {}
+                @finally {}
 			}
 			break;
 		case mid_height:
@@ -214,6 +222,7 @@
                     }
                 }
                 @catch (NSException *exception) {}
+                @finally {}
 			}
 			break;
 		case max:
@@ -231,11 +240,13 @@
                     }
                 }
                 @catch (NSException *exception) {}
+                @finally {}
 			}
 			break;
 		default:
 			break;
     }
+    NSLog(@"return");
     return nil;
 }
 
@@ -274,6 +285,7 @@
 - (void)touchesMoved:(NSSet *)touches withEvent: (UIEvent *)event {
     
     if (itemActionMode == editMode) {
+        itemOperator = Operator_moveItem;
         UITouch *touch = [[event allTouches]anyObject];
         if ([[touch view] isKindOfClass:[CustomView class]]) {
             CustomView *nowItem = (CustomView*)[touch view];
@@ -357,16 +369,27 @@
             if (X/itemWidth > rowCount-1 || (Y- (topBarHeight))/itemHeight > columnCount-1)
                 return;
             
-            int rootX = 0;
-            int rootY = 0;
+            int rootX = ((PointItem*)[nowItem.positions objectAtIndex:0]).X;
+            int rootY = ((PointItem*)[nowItem.positions objectAtIndex:0]).Y;
+            [self setItemPosition:nowItem position:[NSArray arrayWithObjects:[NSNumber numberWithInteger:rootX],[NSNumber numberWithInteger:rootY], nil]];
+            [self checkOverlap:nowItem];
+            for (CustomView *item in views) {
+                if (item != nowItem) {
+                    for (PointItem *itemP in item.positions) {
+                        for (PointItem *p in nowItem.positions) {
+                            if ([p isEqual:itemP]) {
+                                isNoSpaceToMove =true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
             if (isNoSpaceToMove) {
                 rootX = tempX;
                 rootY = tempY;
                 isNoSpaceToMove = false;
-            }
-            else {
-                rootX = ((PointItem*)[nowItem.positions objectAtIndex:0]).X;
-                rootY = ((PointItem*)[nowItem.positions objectAtIndex:0]).Y;
             }
             
             BOOL isReset = false;
@@ -475,8 +498,7 @@
 
 - (void)resizeCustomView:(CustomView *)view {
     NSLog(@"resizeCustomView %d",(int)view.tag);
-    
-    itemOperator = reSizeItem;
+    itemOperator = Operator_reSizeItem;
     [self itemResize:view];
 }
 
@@ -487,29 +509,47 @@
     switch (item.size) {
         case min:
             if (startX+1>rowCount-1) {
-                NSLog(@"startX+1>rowCount-1");
-                @try {
-                    startX = [[[self getNewViewPosition:mid_width] objectAtIndex:0] intValue];
-					startY = [[[self getNewViewPosition:mid_width] objectAtIndex:1] intValue];
-                    NSLog(@"startX = %d",startX);
-                    NSLog(@"startY = %d",startY);
+                if (!((PointItem*)[screenPointUse objectAtIndex:startY*rowCount+startX-1]).check) {
+                    startX -= 1;
                 }
-                @catch (NSException *exception) {}
+                else {
+                    @try {
+                        NSArray *array = [self getNewViewPosition:mid_width];
+                        if (array == nil) return;
+                        startX = [[array objectAtIndex:0] intValue];
+                        startY = [[array objectAtIndex:1] intValue];
+                    }
+                    @catch (NSException *exception) {
+                        return;
+                    }
+                }
 			}
+            
             item.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:startX andY:startY],
-                                                              [[PointItem alloc] initWithPoint:startX+1 andY:startY],nil];
-		    item.size = mid_width;
+                              [[PointItem alloc] initWithPoint:startX+1 andY:startY],nil];
+            item.size = mid_width;
             [item setFrame:CGRectMake(0+(itemWidth*startX), (topBarHeight)+(itemHeight*startY), itemWidth*2, itemHeight)];
 
             break;
             
         case mid_width:
             if (startY+1>columnCount-1) {
-                @try {
-                    startX = [[[self getNewViewPosition:mid_height] objectAtIndex:0] intValue];
-					startY = [[[self getNewViewPosition:mid_height] objectAtIndex:1] intValue];
+                if (!((PointItem*)[screenPointUse objectAtIndex:startY*rowCount+startX-rowCount]).check) {
+                    startY -= 1;
                 }
-                @catch (NSException *exception) {}
+                else if (!((PointItem*)[screenPointUse objectAtIndex:startY*rowCount+startX-rowCount+1]).check) {
+                    startX += 1;
+                    startY -= 1;
+                }
+                else {
+                    @try {
+                        NSArray *array = [self getNewViewPosition:mid_height];
+                        if (array == nil) return;
+                        startX = [[array objectAtIndex:0] intValue];
+                        startY = [[array objectAtIndex:1] intValue];
+                    }
+                    @catch (NSException *exception) {}
+                }
 			}
             item.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:startX andY:startY],
                                                               [[PointItem alloc] initWithPoint:startX andY:startY+1],nil];
@@ -520,11 +560,19 @@
             
         case mid_height:
             if (startX+1>rowCount-1 || startY+1>columnCount-1) {
-                @try {
-                    startX = [[[self getNewViewPosition:max] objectAtIndex:0] intValue];
-					startY = [[[self getNewViewPosition:max] objectAtIndex:1] intValue];
+                if (!((PointItem*)[screenPointUse objectAtIndex:startY*rowCount+startX-1]).check &&
+                    !((PointItem*)[screenPointUse objectAtIndex:startY*rowCount+startX-1+rowCount]).check) {
+                    startX -= 1;
                 }
-                @catch (NSException *exception) {}
+                else {
+                    @try {
+                        NSArray *array = [self getNewViewPosition:max];
+                        if (array == nil) return;
+                        startX = [[array objectAtIndex:0] intValue];
+                        startY = [[array objectAtIndex:1] intValue];
+                    }
+                    @catch (NSException *exception) {}
+                }
 			}
             item.positions = [NSMutableArray arrayWithObjects:[[PointItem alloc] initWithPoint:startX andY:startY],
                                                               [[PointItem alloc] initWithPoint:startX+1 andY:startY],
@@ -613,12 +661,17 @@
                             [self updateScreenPosition];
                         }
                         else {
-                            if (itemOperator == reSizeItem) {
+                            if (itemOperator == Operator_reSizeItem) {
+                                
                                 [self itemResize:item];
                                 NSLog(@"無空間");
                             }
                             else {
                                 NSLog(@"無空間可移動");
+                                int X = ((PointItem*)[otherItem.positions objectAtIndex:0]).X;
+                                int Y = ((PointItem*)[otherItem.positions objectAtIndex:0]).Y;
+                                [self setItemPosition:otherItem position:[NSArray arrayWithObjects:[NSNumber numberWithInt:X],
+                                                                                                   [NSNumber numberWithInt:Y],nil]];
                                 isNoSpaceToMove = true;
                             }
                         }

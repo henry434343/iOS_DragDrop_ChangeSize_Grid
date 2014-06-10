@@ -26,8 +26,8 @@ typedef enum {
 }ItemSize;
 
 typedef enum {
-    reSizeItem,
-    moveItem
+    Operator_reSizeItem,
+    Operator_moveItem
 }ItemOperator;
 
 typedef enum {
